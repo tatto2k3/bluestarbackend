@@ -7,14 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Ticket extends Model
 {
-
-    protected $table = 'ticket';
-    public $timestamps = false;
-    protected $primaryKey = 'T_ID';
-    public $incrementing = false;
-
-
+    use HasFactory;
     protected $fillable = [
-        'T_ID', 'CCCD', 'Name', 'Fly_ID', 'Kg_ID','Seat_ID', 'Food_ID', 'Ticket_Price', 'Mail', 'Dis_ID'
+        'id', 'cccd', 'name', 'mail', 'fly_id', 'luggage_id','seat_id', 'food_id', 'price'
     ];
+
+    public function flight() {
+        return $this->belongsTo(Flight::class, 'fly_id', 'id');
+    }
+
+    public function luggage() {
+        return $this->belongsTo(Luggage::class, 'luggage_id', 'id');
+    }
+
+    public function seat() {
+        return $this->belongsTo(Seat::class, 'seat_id', 'id');
+    }
+
+    public function food() {
+        return $this->belongsTo(Food::class, 'food_id', 'id');
+    }
 }

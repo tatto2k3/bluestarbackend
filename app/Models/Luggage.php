@@ -7,14 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Luggage extends Model
 {
-
-    protected $table = 'luggage';
-    public $timestamps = false;
-    protected $primaryKey = 'LUGGAGE_CODE';
-    public $incrementing = false;
-
-
+    use HasFactory;
     protected $fillable = [
-        'LUGGAGE_CODE', 'MASS', 'PRICE'
+        'id', 'mass', 'price'
     ];
 }

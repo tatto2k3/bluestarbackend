@@ -7,14 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class Flight extends Model
 {
-
-    protected $table = 'chuyenbay';
-    public $timestamps = false;
-    protected $primaryKey = 'flyID';
-    public $incrementing = false;
-
-
+    use HasFactory;
     protected $fillable = [
-        'flyID', 'Pl_ID', 'fromLocation', 'toLocation', 'departureTime', 'arrivalTime', 'departureDay', 'originalPrice'
+        'id', 'fromLocation', 'toLocation', 'departureTime', 'arrivalTime', 'departureDay', 'originalPrice'
     ];
+
+    public function fromAirport() {
+        return $this->belongsTo(Airport::class, 'fromLocation', 'id');
+    }
+
+    public function toAirport() {
+        return $this->belongsTo(Airport::class, 'toLocation', 'id');
+    }
 }

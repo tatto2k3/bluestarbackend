@@ -8,7 +8,8 @@ use DateTime;
 
 class FlightController extends Controller
 {
-    function addFlight(Request $request){
+    function addFlight(Request $request)
+    {
         $Flight = new Flight;
         $Flight->flyID = $request->input('flyID');
         $Flight->pl_id = $request->input('Pl_ID');
@@ -26,12 +27,20 @@ class FlightController extends Controller
     function getFlights()
     {
         $Flights = Flight::all();
-         return response()->json($Flights);
+        return response()->json($Flights);
     }
-    function updateFlight(Request $request){
-        
+
+    function getExploreFlights()
+    {
+        $flights = Flight::with(['fromAirport', 'toAirport'])->get();
+        return response()->json($flights);
+    }
+
+
+    function updateFlight(Request $request)
+    {
         try {
-        // Validate the request data as needed
+            // Validate the request data as needed
             $request->validate([
                 'flyID' => 'required',
                 'Pl_ID' => 'required',
@@ -123,46 +132,36 @@ class FlightController extends Controller
     }
 
     public function searchFlight(Request $request)
-{
-    try {
-        $departureDay = null;
+    {
+        try {
+            $validatedData = $request->validate([
+                'fromLocation' => 'required|string',
+                'toLocation' => 'required|string',
+                'departureDay' => 'required|date',
+                'departureTime' => 'nullable|string',
+                'arrivalTime' => 'nullable|string'
+            ]);
 
-        // Extract the day value and convert it to a string
-        $day = substr($request->input('departureDay'), 8, 2);
-        $month = substr($request->input('departureDay'), 5, 2);
-        $year = substr($request->input('departureDay'), 0, 4);
+            $flightsQuery = Flight::with(['fromAirport', 'toAirport']) 
+                ->where('fromLocation', $validatedData['fromLocation'])
+                ->where('toLocation', $validatedData['toLocation'])
+                ->whereDate('departureDay', $validatedData['departureDay']);
 
-        $departureDay = "{$year}-{$month}-{$day}";
+            if (!empty($validatedData['departureTime']) && !empty($validatedData['arrivalTime'])) {
+                $hourDepart = (int) substr($validatedData['departureTime'], 0, 2);
+                $hourArrival = (int) substr($validatedData['arrivalTime'], 0, 2);
 
-        $flightsQuery = Flight::where('fromLocation', $request->input('fromLocation'))
-            ->where('toLocation', $request->input('toLocation'))
-            ->where('departureDay', $departureDay);
+                $flightsQuery->whereRaw("HOUR(departureTime) BETWEEN ? AND ?", [$hourDepart, $hourArrival]);
+            }
 
-        if ($request->input('departureTime') !== null && $request->input('arrivalTime') !== null) {
-            $hourArrival = substr($request->input('arrivalTime'), 0, 2);
-            $hourDepart = substr($request->input('departureTime'), 0, 2);
+            $flights = $flightsQuery->get();
 
-            $flightsQuery->where(function ($query) use ($hourDepart, $hourArrival) {
-                $query->whereRaw("CAST(SUBSTRING(departureTime, 1, 2) AS SIGNED) >= {$hourDepart}")
-                      ->whereRaw("CAST(SUBSTRING(departureTime, 1, 2) AS SIGNED) <= {$hourArrival}");
-            });
+            return response()->json([
+                'total_flight' => $flights->count(),
+                'flights' => $flights
+            ]);
+        } catch (\Exception $ex) {
+            return response()->json(['error' => 'Internal server error: ' . $ex->getMessage()], 500);
         }
-
-        $flights = $flightsQuery->get();
-        $totalFlights = count($flights);
-
-        $result = [
-            'total_flight' => $totalFlights,
-            'flight' => $flights
-        ];
-
-        return response()->json($result);
-    } catch (\Exception $ex) {
-        return response()->json(['error' => 'Internal server error: ' . $ex->getMessage()], 500);
     }
-}
-
-
-
-
 }

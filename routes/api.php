@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\PlaneController;
@@ -17,6 +16,7 @@ use App\Http\Controllers\FlightController;
 use App\Http\Controllers\OnlineCheckoutController;
 use App\Http\Controllers\SeatController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\AirportController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -40,6 +40,11 @@ Route::group([
     Route::get('profile', [AuthController::class, 'profile']);
 
 });
+
+Route::get('airport/getAirports', [AirportController::class, 'getAirports']);
+Route::get('flight/getFlights', [FlightController::class, 'getFlights']);
+Route::get('flight/getExploreFlights', [FlightController::class, 'getExploreFlights']);
+Route::get('flight/searchFlight', [FlightController::class, 'searchFlight']);
 
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

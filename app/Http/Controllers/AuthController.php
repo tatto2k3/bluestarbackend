@@ -16,23 +16,21 @@ class AuthController extends Controller
 
     public function login()
     {
-        // $credentials = request(['email', 'password']);
+        $credentials = request(['email', 'password']);
 
-        // if (! $token = auth()->attempt($credentials)) {
-        //     return response()->json(['error' => 'Unauthorized'], 401);
-        // }
+        if (! $token = auth()->attempt($credentials)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-        // $data = [
-        //     'user_id' => auth()->user()->id,
-        //     'random' => rand() . time(),
-        //     'exp' => time() + config('jwt.refresh_ttl'),
-        // ];
+        $data = [
+            'user_id' => auth()->user()->id,
+            'random' => rand() . time(),
+            'exp' => time() + config('jwt.refresh_ttl'),
+        ];
 
-        // $refreshToken = JWTAuth::getJWTProvider()->encode($data);
+        $refreshToken = JWTAuth::getJWTProvider()->encode($data);
 
-        // return $this->respondWithToken($token, $refreshToken);
-
-        return 123;
+        return $this->respondWithToken($token, $refreshToken);
     }
 
     public function profile()
