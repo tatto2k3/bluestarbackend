@@ -7,15 +7,10 @@ use App\Models\Seat;
 
 class SeatController extends Controller
 {
-    public function getSeatByFlight(Request $request)
+    public function getAllSeats()
     {
         try {
-            $flightId = $request->input('FlightId');
-
-            $seats = Seat::where('FLIGHT_ID', $flightId)
-                ->select('SEAT_ID', 'SEAT_TYPE', 'FLIGHT_ID', 'ISBOOKED')
-                ->get();
-
+            $seats = Seat::all();
             return response()->json($seats);
         } catch (\Exception $ex) {
             return response()->json(['error' => 'Internal Server Error: ' . $ex->getMessage()], 500);

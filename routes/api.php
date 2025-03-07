@@ -46,6 +46,11 @@ Route::get('flight/getFlights', [FlightController::class, 'getFlights']);
 Route::get('flight/getExploreFlights', [FlightController::class, 'getExploreFlights']);
 Route::get('flight/searchFlight', [FlightController::class, 'searchFlight']);
 
+Route::get('seat/getAllSeats', [SeatController::class, 'getAllSeats']);
+
+Route::post('onlineCheckout/check_out', [OnlineCheckoutController::class, 'check_out']);
+Route::post('payment/handleCallback', [PaymentController::class, 'handleCallback']);
+
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
