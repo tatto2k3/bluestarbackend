@@ -13,13 +13,11 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->string('cccd')->unique();
+            $table->string('cccd');
             $table->string('name');
-            $table->string('mail')->unique();
+            $table->string('mail');
             $table->foreignId('fly_id')->constrained('flights');
-            $table->foreignId('luggage_id')->constrained('luggage');
             $table->foreignId('seat_id')->constrained('seats');
-            $table->foreignId('food_id')->constrained('food');
             $table->decimal('price', 10, 2);
         });
     }

@@ -37,8 +37,6 @@ class PaymentController extends Controller
             $ticket->name = $passenger['FirstName'] . ' ' . $passenger['LastName'];
             $ticket->fly_id = $request->input('flight_id');
             $ticket->seat_id = $passenger['SeatId'];
-            $ticket->luggage_id = $passenger['LuggageId'] ?? null;
-            $ticket->food_id = $passenger['FoodId'] ?? null;
             $ticket->price = '1200000';
             $ticket->mail = $passenger['Email'];
             $ticket->save();

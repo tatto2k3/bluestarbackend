@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Flight;
 use DateTime;
+use Carbon\Carbon;
 
 class FlightController extends Controller
 {
@@ -32,11 +33,10 @@ class FlightController extends Controller
 
     function getExploreFlights()
     {
-        $flights = Flight::with(['fromAirport', 'toAirport'])->get();
+        $today = Carbon::today();
+        $flights = Flight::with(['fromAirport', 'toAirport'])->whereDate('departureDay', '>=', $today)->get();
         return response()->json($flights);
     }
-
-
     function updateFlight(Request $request)
     {
         try {
@@ -76,18 +76,15 @@ class FlightController extends Controller
         }
     }
 
-
-    function getFlightDetails(Request $request)
+    public function getFlightDetails($flyId)
     {
-        $selectedFlights = $request->input('flyIds');
+        $flight = Flight::where('id', $flyId)->first();
 
-        // Chuyển chuỗi cIds thành mảng
-        $selectedFlightIds = explode(',', $selectedFlights);
+        if (!$flight) {
+            return response()->json(['message' => 'Không tìm thấy chuyến bay'], 404);
+        }
 
-        // Lấy chi tiết của các khách hàng được chọn
-        $FlightDetails = Flight::whereIn('flyID', $selectedFlightIds)->get();
-
-        return response()->json($FlightDetails);
+        return response()->json($flight);
     }
 
     function deleteFlight($flyId)
@@ -119,7 +116,6 @@ class FlightController extends Controller
                 return response()->json(['error' => 'Invalid search keyword'], 400);
             }
 
-            // Search Flights by name containing the provided keyword
             $searchResults = Flight::where('FULLNAME', 'like', '%' . $searchKeyword . '%')
                 ->orWhere('NUM_ID', 'like', '%' . $searchKeyword . '%')
                 ->orWhere('C_ID', 'like', '%' . $searchKeyword . '%')

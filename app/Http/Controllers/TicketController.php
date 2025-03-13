@@ -8,7 +8,8 @@ use Illuminate\Support\Carbon;
 
 class TicketController extends Controller
 {
-    function addTicket(Request $request){
+    function addTicket(Request $request)
+    {
         $ticket = new Ticket;
         $ticket->t_id = $request->input('T_ID');
         $ticket->cccd = $request->input('CCCD');
@@ -28,12 +29,13 @@ class TicketController extends Controller
     function getTickets()
     {
         $tickets = Ticket::all();
-         return response()->json($tickets);
+        return response()->json($tickets);
     }
-    function updateTicket(Request $request){
-        
+    function updateTicket(Request $request)
+    {
+
         try {
-        // Validate the request data as needed
+            // Validate the request data as needed
             $request->validate([
                 'T_ID' => 'required',
                 'CCCD' => 'required',
@@ -43,20 +45,20 @@ class TicketController extends Controller
             ]);
 
             $departureDate = Ticket::join('chuyenbay', 'ticket.Fly_ID', '=', 'chuyenbay.flyID')
-         ->where('T_ID', $request->input('T_ID'))
-         ->select('chuyenbay.departureDay')
-         ->first();
+                ->where('T_ID', $request->input('T_ID'))
+                ->select('chuyenbay.departureDay')
+                ->first();
 
-     // Chuyển định dạng ngày từ chuỗi sang đối tượng Carbon để so sánh
-     $departureDate = Carbon::parse($departureDate->departureDay);
+            // Chuyển định dạng ngày từ chuỗi sang đối tượng Carbon để so sánh
+            $departureDate = Carbon::parse($departureDate->departureDay);
 
-     // Lấy ngày hiện tại
-     $currentDate = Carbon::now();
+            // Lấy ngày hiện tại
+            $currentDate = Carbon::now();
 
-     // So sánh ngày hiện tại với ngày chuyến bay
-     if ($currentDate->greaterThan($departureDate)) {
-         return response()->json(['error' => 'Khong the sua. Chuyen bay da hoan tat.'], 401);
-     }
+            // So sánh ngày hiện tại với ngày chuyến bay
+            if ($currentDate->greaterThan($departureDate)) {
+                return response()->json(['error' => 'Khong the sua. Chuyen bay da hoan tat.'], 401);
+            }
 
             // Find the Ticket by cId
             $ticket = Ticket::where('T_ID', $request->input('T_ID'))->first();
@@ -84,56 +86,60 @@ class TicketController extends Controller
         }
     }
 
-
-    function getTicketDetails(Request $request)
+    function getTicketDetailsById($ticketId, $customerName)
     {
-        $selectedTickets = $request->input('tIds');
+        if (!$ticketId || !$customerName) {
+            return response()->json(['error' => 'Missing ticket ID or customer name'], 400);
+        }
 
-        // Chuyển chuỗi cIds thành mảng
-        $selectedTicketIds = explode(',', $selectedTickets);
+        $TicketDetails = Ticket::where('id', $ticketId)
+            ->where('name', $customerName)
+            ->first();
 
-        // Lấy chi tiết của các khách hàng được chọn
-        $TicketDetails = Ticket::whereIn('T_ID', $selectedTicketIds)->get();
+        if (!$TicketDetails) {
+            return response()->json(['error' => 'Ticket not found'], 404);
+        }
 
         return response()->json($TicketDetails);
     }
 
+
     function deleteTicket($cId)
-{
-    try {
-        // Tìm khách hàng dựa trên C_ID
-        $ticket = Ticket::where('T_ID', $cId)->first();
+    {
+        try {
+            // Tìm khách hàng dựa trên C_ID
+            $ticket = Ticket::where('T_ID', $cId)->first();
 
-        if (!$ticket) {
-            return response()->json(['error' => 'Ticket not found'], 404);
+            if (!$ticket) {
+                return response()->json(['error' => 'Ticket not found'], 404);
+            }
+
+            // Lấy ngày chuyến bay từ cơ sở dữ liệu
+            $departureDate = Ticket::join('chuyenbay', 'ticket.Fly_ID', '=', 'chuyenbay.flyID')
+                ->where('T_ID', $cId)
+                ->select('chuyenbay.departureDay')
+                ->first();
+
+            // Chuyển định dạng ngày từ chuỗi sang đối tượng Carbon để so sánh
+            $departureDate = Carbon::parse($departureDate->departureDay);
+
+            // Lấy ngày hiện tại
+            $currentDate = Carbon::now();
+
+            // So sánh ngày hiện tại với ngày chuyến bay
+            if ($currentDate->greaterThan($departureDate)) {
+                return response()->json(['error' => 'Cannot delete. Departure date has passed.'], 400);
+            }
+
+            // Nếu ngày chuyến bay chưa đến, thực hiện xóa vé máy bay
+            $ticket->delete();
+
+            return response()->json(['message' => 'Ticket deleted successfully'], 200);
+        } catch (\Exception $e) {
+            // Xử lý lỗi
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-         // Lấy ngày chuyến bay từ cơ sở dữ liệu
-         $departureDate = Ticket::join('chuyenbay', 'ticket.Fly_ID', '=', 'chuyenbay.flyID')
-         ->where('T_ID', $cId)
-         ->select('chuyenbay.departureDay')
-         ->first();
-
-     // Chuyển định dạng ngày từ chuỗi sang đối tượng Carbon để so sánh
-     $departureDate = Carbon::parse($departureDate->departureDay);
-
-     // Lấy ngày hiện tại
-     $currentDate = Carbon::now();
-
-     // So sánh ngày hiện tại với ngày chuyến bay
-     if ($currentDate->greaterThan($departureDate)) {
-         return response()->json(['error' => 'Cannot delete. Departure date has passed.'], 400);
-     }
-
-     // Nếu ngày chuyến bay chưa đến, thực hiện xóa vé máy bay
-     $ticket->delete();
-
-     return response()->json(['message' => 'Ticket deleted successfully'], 200);
- } catch (\Exception $e) {
-     // Xử lý lỗi
-     return response()->json(['error' => $e->getMessage()], 500);
- }
-}
+    }
 
 
     function searchTickets(Request $request)
@@ -171,14 +177,14 @@ class TicketController extends Controller
             $result = Ticket::join('chuyenbay', 'ticket.Fly_ID', '=', 'chuyenbay.flyID')
                 ->whereRaw('Name = ?', [$name])
                 ->whereRaw('ticket.Fly_ID = ?', [$flyId])
-                ->select('ticket.T_ID', 'ticket.CCCD', 'ticket.Name', 'ticket.Fly_ID', 'chuyenbay.departureDay','chuyenbay.departureTime','chuyenbay.arrivalTime','ticket.Seat_ID')
+                ->select('ticket.T_ID', 'ticket.CCCD', 'ticket.Name', 'ticket.Fly_ID', 'chuyenbay.departureDay', 'chuyenbay.departureTime', 'chuyenbay.arrivalTime', 'ticket.Seat_ID')
                 ->get();
 
             $totalRevenue = $result->sum('Ticket_Price');
 
             $details = Ticket::join('chuyenbay', 'ticket.Fly_ID', '=', 'chuyenbay.flyID')
                 ->whereRaw('Name = ?', [$name])
-                
+
                 ->get();
 
             return response()->json($result);
@@ -186,7 +192,4 @@ class TicketController extends Controller
             return response()->json(['error' => 'Internal Server Error'], 500);
         }
     }
-
-
-
 }

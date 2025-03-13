@@ -17,6 +17,8 @@ use App\Http\Controllers\OnlineCheckoutController;
 use App\Http\Controllers\SeatController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AirportController;
+use App\Http\Controllers\UserMetaController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -33,12 +35,16 @@ Route::group([
     'middleware' => 'api',
     'prefix' => 'auth'
 ], function ($router) {
-
     Route::post('login', [AuthController::class, 'login']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('profile', [AuthController::class, 'profile']);
+    Route::post('google', [AuthController::class, 'handleGoogleLogin']);
+});
 
+Route::middleware('auth:api')->group(function () {
+    Route::get('/get-user-meta', [UserMetaController::class, 'getUserMeta']);
+    Route::post('/update-user-meta', [UserMetaController::class, 'updateUserMeta']);
 });
 
 Route::get('airport/getAirports', [AirportController::class, 'getAirports']);
@@ -51,6 +57,9 @@ Route::get('seat/getAllSeats', [SeatController::class, 'getAllSeats']);
 Route::post('onlineCheckout/check_out', [OnlineCheckoutController::class, 'check_out']);
 Route::post('payment/handleCallback', [PaymentController::class, 'handleCallback']);
 
+Route::get('ticket/getTicketDetailsById/{ticketId}/{name}', [TicketController::class, 'getTicketDetailsById']);
+
+Route::get('/flight/{flyId}', [FlightController::class, 'getFlightDetails']);
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
